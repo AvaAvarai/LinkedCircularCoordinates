@@ -41,14 +41,13 @@ def calculate_label_positions(num_features, radius):
         positions.append((x, y))
     return positions
 
-def plot_circular_coordinates(data, labels, feature_names, scaler, class_order, feature_order, ax):
+def plot_circular_coordinates(data, labels, feature_names, scaler, class_order, feature_order, ax, highlighted_index=None):
     ax.clear()
     
     num_classes = len(np.unique(labels))
     num_features = data.shape[1]
     hsv_colors = [mcolors.hsv_to_rgb((i / num_classes, 1, 1)) for i in range(num_classes)]
     
-    # if 'class' name caseinsensitive is 'benign' or 'malignant', set color to green or red in HSV
     for i, class_name in enumerate(class_names):
         if class_name.lower() == 'benign':
             hsv_colors[i] = 'green'
@@ -58,7 +57,6 @@ def plot_circular_coordinates(data, labels, feature_names, scaler, class_order, 
     angles = np.linspace(2 * np.pi, 0, num_features + 1, endpoint=True)
     radii = np.linspace(1, num_classes, num_classes)
     
-    # Draw circles and sectors
     for radius in radii:
         circle = plt.Circle((0, 0), radius, color='black', fill=False, linestyle='dashed')
         ax.add_artist(circle)
@@ -66,36 +64,24 @@ def plot_circular_coordinates(data, labels, feature_names, scaler, class_order, 
             x, y = radius * np.cos(angle), radius * np.sin(angle)
             ax.plot([0, x], [0, y], color='black', linestyle='dashed', linewidth=0.5)
     
-    # Calculate label positions dynamically
-    label_positions = calculate_label_positions(num_features, radii[-1] * 1.35)
-    original_feature_order = feature_order
-    # rotate the feature order by half of the number of features to start from the top
-    feature_order = feature_order[num_features // 2:] + feature_order[:num_features // 2]
-    # invert the feature order to start from the top
-    feature_order = feature_order[::-1]
-    # rotate back 1
-    feature_order = feature_order[-1:] + feature_order[:-1]
-    # make sure data is in the same order as feature order
-    data = data[:, feature_order]
+    label_positions = calculate_label_positions(num_features, radii[-1] * 1.4)
     
     for i, feature_idx in enumerate(feature_order):
-        adjusted_index = i
+        adjusted_index = -i + num_features // 2
         sector_start = angles[adjusted_index]
         sector_end = angles[adjusted_index + 1]
         
-        # Calculate original range from normalized range
         original_min = scaler.data_min_[feature_idx]
         original_max = scaler.data_max_[feature_idx]
         normalized_range = f"[{0:.2f} - {1:.2f}]"
         original_range = f"[{original_min:.2f} - {original_max:.2f}]"
         
-        # Determine label position
         x, y = label_positions[adjusted_index]
         
         ax.text(x, y, f"{feature_names[feature_idx]}\nNorm: {normalized_range}\nOrig: {original_range}", 
                 ha='center', va='center', fontsize=8, bbox=dict(facecolor='white', alpha=0.5))
 
-    # Scatter points and create legend handles
+    scatter_plots = []
     for j in range(len(data)):
         class_label = labels[j]
         radius = radii[class_order.index(class_label)]
@@ -105,44 +91,48 @@ def plot_circular_coordinates(data, labels, feature_names, scaler, class_order, 
             sector_end = angles[adjusted_index]
             data_angle = np.interp(data[j, feature_idx], [0, 1], [sector_start, sector_end])
             x, y = radius * -np.cos(data_angle), radius * np.sin(data_angle)
-            ax.scatter(x, y, color=hsv_colors[class_label], alpha=0.33)
+            scatter = ax.scatter(x, y, color=hsv_colors[class_label], alpha=0.33 if j != highlighted_index else 1, picker=True)
+            scatter_plots.append((scatter, j))
 
     ax.set_aspect('equal', adjustable='box')
     ax.set_xticks([])
     ax.set_yticks([])
+    return scatter_plots
 
-def plot_parallel_coordinates(data, labels, feature_names, class_order, feature_order, ax2):
+def plot_parallel_coordinates(data, labels, feature_names, class_order, feature_order, ax2, highlighted_index=None):
     ax2.clear()
     num_classes = len(np.unique(labels))
     hsv_colors = [mcolors.hsv_to_rgb((i / num_classes, 1, 1)) for i in range(num_classes)]
     
-    # if 'class' name caseinsensitive is 'benign' or 'malignant', set color to green or red in HSV
     for i, class_name in enumerate(class_names):
         if class_name.lower() == 'benign':
             hsv_colors[i] = 'green'
         elif class_name.lower() == 'malignant':
             hsv_colors[i] = 'red'
     
-    # Create DataFrame for parallel coordinates
     df = pd.DataFrame(data, columns=feature_names)
     df['Class'] = labels
     
-    # Reorder DataFrame based on selected feature order
     reordered_columns = [feature_names[i] for i in feature_order] + ['Class']
     df = df[reordered_columns]
     
-    parallel_coordinates(df, 'Class', color=hsv_colors, ax=ax2, linewidth=1)
+    parallel_coordinates(df, 'Class', color=hsv_colors, ax=ax2, linewidth=1, alpha=0.33)
     
+    if highlighted_index is not None:
+        df_highlighted = df.iloc[[highlighted_index]]
+        parallel_coordinates(df_highlighted, 'Class', color=hsv_colors, ax=ax2, linewidth=2.5)
+
     ax2.set_xticklabels([feature_names[i] for i in feature_order], rotation=30, ha='right')
     ax2.legend().set_visible(False)
 
-def update_plot(*args):
+def update_plot(highlighted_index=None):
     selected_class_order = class_order_combobox.get()
     selected_feature_order = feature_order_combobox.get()
     class_order = [class_names.index(c.strip()) for c in selected_class_order.split(',')]
     feature_order = [feature_names.index(f.strip()) for f in selected_feature_order.split(',')]
-    plot_circular_coordinates(data, labels, feature_names, scaler, class_order, feature_order, ax)
-    plot_parallel_coordinates(data, labels, feature_names, class_order, feature_order, ax2)
+    global scatter_plots
+    scatter_plots = plot_circular_coordinates(data, labels, feature_names, scaler, class_order, feature_order, ax, highlighted_index)
+    plot_parallel_coordinates(data, labels, feature_names, class_order, feature_order, ax2, highlighted_index)
     update_legend()
     canvas.draw()
 
@@ -233,7 +223,7 @@ feature_order_combobox = ttk.Combobox(control_frame, width=40)
 feature_order_combobox.grid(column=1, row=1, sticky=(tk.W, tk.E))
 
 # Update plot button
-ttk.Button(control_frame, text="Update Plot", command=update_plot).grid(column=1, row=2, sticky=tk.E)
+ttk.Button(control_frame, text="Update Plot", command=lambda: update_plot(None)).grid(column=1, row=2, sticky=tk.E)
 
 # Load file button
 ttk.Button(control_frame, text="Load File", command=load_file).grid(column=0, row=2, sticky=tk.W)
@@ -247,5 +237,15 @@ plot_frame.columnconfigure(0, weight=1)
 plot_frame.rowconfigure(0, weight=1)
 
 control_frame.columnconfigure(1, weight=1)
+
+# Event handling for highlighting
+def onpick(event):
+    scatter = event.artist
+    for sp, ind in scatter_plots:
+        if sp == scatter:
+            update_plot(ind)
+            break
+
+canvas.mpl_connect('pick_event', onpick)
 
 root.mainloop()
