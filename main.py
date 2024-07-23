@@ -96,9 +96,9 @@ def plot_circular_coordinates(data, labels, feature_names, scaler, class_order, 
     
             if highlighted_index is not None and j == highlighted_index:
                 ax.scatter(x, y, color=[1, 0, 0], alpha=1, s=135, edgecolors='black', linewidth=1)
-                ax.scatter(x, y, color=[1, 1, 0], alpha=1, s=125)
+                ax.scatter(x, y, color=[1, 1, 0], alpha=0.75, s=125)
                 # connect the highlighted scatter points with a polyline
-                ax.plot([0, x], [0, y], color='black', linestyle='-', linewidth=1)
+                ax.plot([0, x], [0, y], color='yellow', linestyle='-', linewidth=2.5)
     
     ax.set_aspect('equal', adjustable='box')
     ax.set_xticks([])
@@ -131,26 +131,20 @@ def plot_parallel_coordinates(data, labels, feature_names, class_order, feature_
     ax2.set_xticklabels([feature_names[i] for i in feature_order], rotation=30, ha='right')
     ax2.legend().set_visible(False)
 
-def plot_table(df, normalized_data, table):
+def plot_table(df, table):
     for col in table.get_children():
         table.delete(col)
     
     table["columns"] = []
     table["show"] = "headings"
     
-    feature_names = list(df.columns.drop('class'))
-    normalized_df = pd.DataFrame(normalized_data, columns=feature_names)
-    normalized_df['class'] = df['class'].values
-    
-    combined_df = pd.concat([df.reset_index(drop=True), normalized_df.add_suffix('_norm')], axis=1)
-    
-    table["columns"] = list(combined_df.columns)
-    table["columns"] = [col for col in combined_df.columns if col != 'class_norm']  # Remove the duplicate class column
+    table["columns"] = list(df.columns)
+
     for col in table["columns"]:
         table.heading(col, text=col)
-        table.column(col, width=80, anchor='center')
+        table.column(col, width=20, anchor='center')
     
-    for i, row in combined_df.iterrows():
+    for i, row in df.iterrows():
         values = [row[col] for col in table["columns"]]
         table.insert("", "end", values=values)
 
@@ -172,7 +166,7 @@ def update_plot(highlighted_index=None):
     global scatter_plots
     scatter_plots = plot_circular_coordinates(data, labels, feature_names, scaler, class_order, feature_order, ax, highlighted_index)
     plot_parallel_coordinates(data, labels, feature_names, class_order, feature_order, ax2, highlighted_index)
-    plot_table(original_df, data, table)
+    plot_table(original_df, table)
     highlight_row(table, highlighted_index)
     update_legend()
     canvas.draw()
@@ -231,7 +225,7 @@ data, labels, feature_names, scaler, class_names, original_df = None, None, None
 
 root = tk.Tk()
 root.title("Scatterplot Control Panel")
-root.geometry("1840x1000")
+root.geometry("1900x1000")
 
 # Center the window
 center_window(root)
