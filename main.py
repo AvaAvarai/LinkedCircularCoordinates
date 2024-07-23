@@ -91,9 +91,11 @@ def plot_circular_coordinates(data, labels, feature_names, scaler, class_order, 
             sector_end = angles[adjusted_index]
             data_angle = np.interp(data[j, feature_idx], [0, 1], [sector_start, sector_end])
             x, y = radius * -np.cos(data_angle), radius * np.sin(data_angle)
-            scatter = ax.scatter(x, y, color=hsv_colors[class_label], alpha=0.33 if j != highlighted_index else 1, picker=True)
+            scatter = ax.scatter(x, y, color=hsv_colors[class_label], alpha=0.3 if j != highlighted_index else 1, picker=True)
             scatter_plots.append((scatter, j))
-
+            if highlighted_index is not None and j == highlighted_index:
+                ax.scatter(x, y, color=[1, 1, 0], alpha=1, s=100)
+    
     ax.set_aspect('equal', adjustable='box')
     ax.set_xticks([])
     ax.set_yticks([])
@@ -120,7 +122,7 @@ def plot_parallel_coordinates(data, labels, feature_names, class_order, feature_
     
     if highlighted_index is not None:
         df_highlighted = df.iloc[[highlighted_index]]
-        parallel_coordinates(df_highlighted, 'Class', color=hsv_colors, ax=ax2, linewidth=2.5)
+        parallel_coordinates(df_highlighted, 'Class', color=[1, 1, 0], ax=ax2, linewidth=2.5)
 
     ax2.set_xticklabels([feature_names[i] for i in feature_order], rotation=30, ha='right')
     ax2.legend().set_visible(False)
