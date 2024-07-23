@@ -110,7 +110,7 @@ def plot_parallel_coordinates(data, labels, feature_names, class_order, feature_
     
     parallel_coordinates(df, 'Class', color=hsv_colors, ax=ax2, linewidth=1)
     
-    ax2.set_xticklabels([feature_names[i] for i in feature_order], rotation=15, ha='right')
+    ax2.set_xticklabels([feature_names[i] for i in feature_order], rotation=30, ha='right')
     ax2.legend().set_visible(False)
 
 def update_plot(*args):
@@ -151,14 +151,14 @@ def update_legend():
     for i, class_name in enumerate(class_names):
         count = class_counts.get(i, 0)
         legend_handles.append(plt.Line2D([0], [0], marker='o', color='w', markerfacecolor=hsv_colors[i], markersize=10, label=f"{class_name} ({count})"))
-    fig.legend(handles=legend_handles, loc='lower center', bbox_to_anchor=(0.45, 0.875), ncol=len(class_names), title="Classes")
+    fig.legend(handles=legend_handles, loc='upper center', bbox_to_anchor=(0.5, 0.95), ncol=len(class_names), title="Classes")
 
 # Initialize global variables
 data, labels, feature_names, scaler, class_names = None, None, None, None, None
 
 root = tk.Tk()
 root.title("Scatterplot Control Panel")
-root.geometry("1450x800")
+root.geometry("1840x900")
 
 # Main frame to hold plot and controls
 mainframe = ttk.Frame(root, padding="10 10 10 10")
@@ -168,8 +168,8 @@ mainframe.grid(column=0, row=0, sticky=(tk.W, tk.E, tk.N, tk.S))
 plot_frame = ttk.Frame(mainframe, padding="10 10 10 10")
 plot_frame.grid(column=0, row=0, sticky=(tk.W, tk.E, tk.N, tk.S))
 
-fig, (ax, ax2) = plt.subplots(1, 2, figsize=(14, 6), gridspec_kw={'width_ratios': [1, 1.5]})
-fig.suptitle("SCC Scatterplot Multi-Axes vs Parallel Coordinates", y=0.99, x=0.45)
+fig, (ax, ax2) = plt.subplots(1, 2, figsize=(18, 8), gridspec_kw={'width_ratios': [1, 1.5], 'wspace': 0.3})
+fig.suptitle("SCC Scatterplot Multi-Axes vs Parallel Coordinates", y=0.98, x=0.5)
 canvas = FigureCanvasTkAgg(fig, master=plot_frame)
 canvas.get_tk_widget().grid(column=0, row=0, sticky=(tk.W, tk.E, tk.N, tk.S))
 
