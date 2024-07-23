@@ -93,8 +93,12 @@ def plot_circular_coordinates(data, labels, feature_names, scaler, class_order, 
             x, y = radius * -np.cos(data_angle), radius * np.sin(data_angle)
             scatter = ax.scatter(x, y, color=hsv_colors[class_label], alpha=0.3 if j != highlighted_index else 1, picker=True)
             scatter_plots.append((scatter, j))
+    
             if highlighted_index is not None and j == highlighted_index:
-                ax.scatter(x, y, color=[1, 1, 0], alpha=1, s=100)
+                ax.scatter(x, y, color=[1, 0, 0], alpha=1, s=135, edgecolors='black', linewidth=1)
+                ax.scatter(x, y, color=[1, 1, 0], alpha=1, s=125)
+                # connect the highlighted scatter points with a polyline
+                ax.plot([0, x], [0, y], color='black', linestyle='-', linewidth=1)
     
     ax.set_aspect('equal', adjustable='box')
     ax.set_xticks([])
@@ -141,12 +145,14 @@ def plot_table(df, normalized_data, table):
     combined_df = pd.concat([df.reset_index(drop=True), normalized_df.add_suffix('_norm')], axis=1)
     
     table["columns"] = list(combined_df.columns)
-    for col in combined_df.columns:
+    table["columns"] = [col for col in combined_df.columns if col != 'class_norm']  # Remove the duplicate class column
+    for col in table["columns"]:
         table.heading(col, text=col)
         table.column(col, width=80, anchor='center')
     
     for i, row in combined_df.iterrows():
-        table.insert("", "end", values=list(row))
+        values = [row[col] for col in table["columns"]]
+        table.insert("", "end", values=values)
 
 def highlight_row(table, index):
     for row in table.get_children():
@@ -251,7 +257,9 @@ table_frame.grid(column=0, row=1, sticky=(tk.W, tk.E, tk.N, tk.S))
 table = ttk.Treeview(table_frame, show="headings", selectmode="browse")
 v_scrollbar = ttk.Scrollbar(table_frame, orient="vertical", command=table.yview)
 v_scrollbar.pack(side="right", fill="y")
-
+h_scrollbar = ttk.Scrollbar(table_frame, orient="horizontal", command=table.xview)
+h_scrollbar.pack(side="bottom", fill="x")
+table.configure(yscrollcommand=v_scrollbar.set, xscrollcommand=h_scrollbar.set)
 table.pack(side="left", fill="both", expand=True)
 
 # Frame for controls
@@ -293,5 +301,14 @@ def onpick(event):
             break
 
 canvas.mpl_connect('pick_event', onpick)
+
+# Table row click event
+def on_row_click(event):
+    selected_item = table.selection()
+    if selected_item:
+        index = table.index(selected_item[0])
+        update_plot(index)
+
+table.bind('<<TreeviewSelect>>', on_row_click)
 
 root.mainloop()
