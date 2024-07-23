@@ -16,11 +16,11 @@ def load_and_normalize_file(file_path):
         df = pd.read_csv(file_path, delimiter='\t')
     else:
         messagebox.showerror("Error", "Unsupported file type. Please select a CSV or TXT file.")
-        return None, None, None, None, None
+        return None, None, None, None, None, None
     
     if 'class' not in df.columns:
         messagebox.showerror("Error", "The selected file does not contain a 'class' column.")
-        return None, None, None, None, None
+        return None, None, None, None, None, None
 
     labels = df['class']
     data = df.drop(columns=['class']).values
@@ -30,7 +30,7 @@ def load_and_normalize_file(file_path):
     class_names = labels.unique().astype(str).tolist()
     label_to_index = {class_name: index for index, class_name in enumerate(class_names)}
     labels = labels.map(label_to_index)
-    return normalized_data, labels, feature_names, scaler, class_names
+    return normalized_data, labels, feature_names, scaler, class_names, df
 
 def calculate_label_positions(num_features, radius):
     positions = []
@@ -127,6 +127,37 @@ def plot_parallel_coordinates(data, labels, feature_names, class_order, feature_
     ax2.set_xticklabels([feature_names[i] for i in feature_order], rotation=30, ha='right')
     ax2.legend().set_visible(False)
 
+def plot_table(df, normalized_data, table):
+    for col in table.get_children():
+        table.delete(col)
+    
+    table["columns"] = []
+    table["show"] = "headings"
+    
+    feature_names = list(df.columns.drop('class'))
+    normalized_df = pd.DataFrame(normalized_data, columns=feature_names)
+    normalized_df['class'] = df['class'].values
+    
+    combined_df = pd.concat([df.reset_index(drop=True), normalized_df.add_suffix('_norm')], axis=1)
+    
+    table["columns"] = list(combined_df.columns)
+    for col in combined_df.columns:
+        table.heading(col, text=col)
+        table.column(col, width=80, anchor='center')
+    
+    for i, row in combined_df.iterrows():
+        table.insert("", "end", values=list(row))
+
+def highlight_row(table, index):
+    for row in table.get_children():
+        table.item(row, tags=())
+
+    if index is not None:
+        item_id = table.get_children()[index]
+        table.item(item_id, tags=('highlight',))
+        table.tag_configure('highlight', background='yellow')
+        table.see(item_id)
+
 def update_plot(highlighted_index=None):
     selected_class_order = class_order_combobox.get()
     selected_feature_order = feature_order_combobox.get()
@@ -135,18 +166,18 @@ def update_plot(highlighted_index=None):
     global scatter_plots
     scatter_plots = plot_circular_coordinates(data, labels, feature_names, scaler, class_order, feature_order, ax, highlighted_index)
     plot_parallel_coordinates(data, labels, feature_names, class_order, feature_order, ax2, highlighted_index)
+    plot_table(original_df, data, table)
+    highlight_row(table, highlighted_index)
     update_legend()
     canvas.draw()
-    if highlighted_index is not None:
-        display_highlighted_values(highlighted_index)
 
 def load_file():
     file_path = filedialog.askopenfilename(initialdir='datasets', filetypes=[("CSV files", "*.csv"), ("Text files", "*.txt")])
     if file_path:
         result = load_and_normalize_file(file_path)
         if result[0] is not None:
-            global data, labels, feature_names, scaler, class_names
-            data, labels, feature_names, scaler, class_names = result
+            global data, labels, feature_names, scaler, class_names, original_df
+            data, labels, feature_names, scaler, class_names, original_df = result
             update_controls()
             update_plot()
 
@@ -182,7 +213,7 @@ def update_legend():
 def center_window(root):
     root.update_idletasks()
     screen_width = root.winfo_screenwidth()
-    screen_height = root.winfo_screenheight()
+    screen_height = root.winfo_screenheight() - 65
     window_width = root.winfo_width()
     window_height = root.winfo_height()
     position_right = int(screen_width / 2 - window_width / 2)
@@ -190,11 +221,11 @@ def center_window(root):
     root.geometry(f"+{position_right}+{position_down}")
 
 # Initialize global variables
-data, labels, feature_names, scaler, class_names = None, None, None, None, None
+data, labels, feature_names, scaler, class_names, original_df = None, None, None, None, None, None
 
 root = tk.Tk()
 root.title("Scatterplot Control Panel")
-root.geometry("1840x1050")
+root.geometry("1840x1000")
 
 # Center the window
 center_window(root)
@@ -207,14 +238,25 @@ mainframe.grid(column=0, row=0, sticky=(tk.W, tk.E, tk.N, tk.S))
 plot_frame = ttk.Frame(mainframe, padding="10 10 10 10")
 plot_frame.grid(column=0, row=0, sticky=(tk.W, tk.E, tk.N, tk.S))
 
-fig, (ax, ax2) = plt.subplots(1, 2, figsize=(18, 7), gridspec_kw={'width_ratios': [1, 1.5], 'wspace': 0.75})
+fig, (ax, ax2) = plt.subplots(1, 2, figsize=(18, 6), gridspec_kw={'width_ratios': [1, 1.5], 'wspace': 0.75})
 fig.suptitle("SCC Scatterplot Multi-Axes vs Parallel Coordinates", y=0.98, x=0.5)
 canvas = FigureCanvasTkAgg(fig, master=plot_frame)
 canvas.get_tk_widget().grid(column=0, row=0, sticky=(tk.W, tk.E, tk.N, tk.S))
 
+# Scrollable table frame
+table_frame = ttk.Frame(mainframe, padding="10 10 10 10")
+table_frame.grid(column=0, row=1, sticky=(tk.W, tk.E, tk.N, tk.S))
+
+# Create the table and add scrollbars to it
+table = ttk.Treeview(table_frame, show="headings", selectmode="browse")
+v_scrollbar = ttk.Scrollbar(table_frame, orient="vertical", command=table.yview)
+v_scrollbar.pack(side="right", fill="y")
+
+table.pack(side="left", fill="both", expand=True)
+
 # Frame for controls
 control_frame = ttk.Frame(mainframe, padding="0 0 0 0")
-control_frame.grid(column=0, row=1, sticky=(tk.W, tk.E))
+control_frame.grid(column=0, row=2, sticky=(tk.W, tk.E))
 
 # Class order combobox
 ttk.Label(control_frame, text="Class Order").grid(column=0, row=0, sticky=tk.W)
@@ -231,10 +273,6 @@ ttk.Button(control_frame, text="Update Plot", command=lambda: update_plot(None))
 
 # Load file button
 ttk.Button(control_frame, text="Load File", command=load_file).grid(column=0, row=2, sticky=tk.W)
-
-# Text widget for displaying highlighted values
-highlighted_values_text = tk.Text(control_frame, width=80, height=10)
-highlighted_values_text.grid(column=0, row=3, columnspan=2, pady=10)
 
 # Adjust grid configurations for resizing
 mainframe.columnconfigure(0, weight=1)
@@ -253,20 +291,6 @@ def onpick(event):
         if sp == scatter:
             update_plot(ind)
             break
-
-def display_highlighted_values(index):
-    normalized_values = data[index]
-    original_values = scaler.inverse_transform([normalized_values])[0]
-    class_label = class_names[labels[index]]
-    
-    values_text = f"Highlighted Index: {index}\nClass: {class_label}\n\n"
-    values_text += "{:<20} {:<20} {:<20}\n".format("Feature", "Normalized Value", "Original Value")
-    values_text += "-" * 60 + "\n"
-    for i, feature_name in enumerate(feature_names):
-        values_text += "{:<20} {:<20.4f} {:<20.4f}\n".format(feature_name, normalized_values[i], original_values[i])
-    
-    highlighted_values_text.delete(1.0, tk.END)
-    highlighted_values_text.insert(tk.END, values_text)
 
 canvas.mpl_connect('pick_event', onpick)
 
