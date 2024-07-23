@@ -48,6 +48,13 @@ def plot_iris_on_circles(data, labels, feature_names, scaler, class_order, featu
     num_features = data.shape[1]
     hsv_colors = [mcolors.hsv_to_rgb((i / num_classes, 1, 1)) for i in range(num_classes)]
     
+    # if 'class' name caseinsensitive is 'benign' or 'malignant', set color to green or red in HSV
+    for i, class_name in enumerate(class_names):
+        if class_name.lower() == 'benign':
+            hsv_colors[i] = 'green'
+        elif class_name.lower() == 'malignant':
+            hsv_colors[i] = 'red'
+    
     angles = np.linspace(0, 2 * np.pi, num_features + 1, endpoint=True)
     radii = np.linspace(1, num_classes, num_classes)
     
@@ -100,6 +107,13 @@ def plot_parallel_coordinates(data, labels, feature_names, class_order, feature_
     num_classes = len(np.unique(labels))
     hsv_colors = [mcolors.hsv_to_rgb((i / num_classes, 1, 1)) for i in range(num_classes)]
     
+    # if 'class' name caseinsensitive is 'benign' or 'malignant', set color to green or red in HSV
+    for i, class_name in enumerate(class_names):
+        if class_name.lower() == 'benign':
+            hsv_colors[i] = 'green'
+        elif class_name.lower() == 'malignant':
+            hsv_colors[i] = 'red'
+    
     # Create DataFrame for parallel coordinates
     df = pd.DataFrame(data, columns=feature_names)
     df['Class'] = labels
@@ -146,11 +160,19 @@ def update_legend():
     if fig.legends:
         fig.legends.clear()
     legend_handles = []
-    hsv_colors = [mcolors.hsv_to_rgb((i / len(class_names), 1, 1)) for i in range(len(class_names))]
-    class_counts = labels.value_counts().to_dict()
+    class_colors = {}
     for i, class_name in enumerate(class_names):
-        count = class_counts.get(i, 0)
-        legend_handles.append(plt.Line2D([0], [0], marker='o', color='w', markerfacecolor=hsv_colors[i], markersize=10, label=f"{class_name} ({count})"))
+        if class_name.lower() == 'benign':
+            class_colors[class_name] = 'green'
+        elif class_name.lower() == 'malignant':
+            class_colors[class_name] = 'red'
+        else:
+            class_colors[class_name] = mcolors.hsv_to_rgb((i / len(class_names), 1, 1))
+    
+    class_counts = labels.value_counts().to_dict()
+    for class_name, color in class_colors.items():
+        count = class_counts.get(class_names.index(class_name), 0)
+        legend_handles.append(plt.Line2D([0], [0], marker='o', color='w', markerfacecolor=color, markersize=10, label=f"{class_name} ({count})"))
     fig.legend(handles=legend_handles, loc='upper center', bbox_to_anchor=(0.5, 0.95), ncol=len(class_names), title="Classes")
 
 # Center the window on open
