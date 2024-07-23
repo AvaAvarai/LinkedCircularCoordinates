@@ -16,10 +16,13 @@ X, Y, Z, W, class,
 
 If the class name is `benign` or `malignant` case-insensitive then the class color assigned is green and red respectively. Otherwise, we linearly divide the HSV color model for a visually distinct default color palette.
 
-## Screenshots
+## Demonstrative Screenshots
 
-Demo screenshot of Fisher Iris dataset:
+Fisher Iris dataset default visualization:
 ![Demo screenshot of Iris dataset](screenshots/demo_iris.png)
+
+Tracing a outier in Setosa class sepal.width attribute of Fisher Iris dataset.
+![Demo screenshot of Iris dataset](screenshots/demo_iris_outlier.png)
 
 ## License
 
