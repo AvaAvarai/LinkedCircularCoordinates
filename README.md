@@ -16,5 +16,5 @@ X, Y, Z, W, class,
 
 ## Screenshots
 
-Demo screenshot 1:
-![Demo screenshot 1](screenshots/demo1.png)
+Demo screenshot of Fisher Iris dataset:
+![Demo screenshot of Iris dataset](screenshots/demo_iris.png)

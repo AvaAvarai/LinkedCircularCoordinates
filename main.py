@@ -153,12 +153,26 @@ def update_legend():
         legend_handles.append(plt.Line2D([0], [0], marker='o', color='w', markerfacecolor=hsv_colors[i], markersize=10, label=f"{class_name} ({count})"))
     fig.legend(handles=legend_handles, loc='upper center', bbox_to_anchor=(0.5, 0.95), ncol=len(class_names), title="Classes")
 
+# Center the window on open
+def center_window(root):
+    root.update_idletasks()
+    screen_width = root.winfo_screenwidth()
+    screen_height = root.winfo_screenheight()
+    window_width = root.winfo_width()
+    window_height = root.winfo_height()
+    position_right = int(screen_width / 2 - window_width / 2)
+    position_down = int(screen_height / 2 - window_height / 2)
+    root.geometry(f"+{position_right}+{position_down}")
+
 # Initialize global variables
 data, labels, feature_names, scaler, class_names = None, None, None, None, None
 
 root = tk.Tk()
 root.title("Scatterplot Control Panel")
 root.geometry("1840x900")
+
+# Center the window
+center_window(root)
 
 # Main frame to hold plot and controls
 mainframe = ttk.Frame(root, padding="10 10 10 10")
