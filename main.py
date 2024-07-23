@@ -41,7 +41,7 @@ def calculate_label_positions(num_features, radius):
         positions.append((x, y))
     return positions
 
-def plot_iris_on_circles(data, labels, feature_names, scaler, class_order, feature_order, ax):
+def plot_circular_coordinates(data, labels, feature_names, scaler, class_order, feature_order, ax):
     ax.clear()
     
     num_classes = len(np.unique(labels))
@@ -55,7 +55,7 @@ def plot_iris_on_circles(data, labels, feature_names, scaler, class_order, featu
         elif class_name.lower() == 'malignant':
             hsv_colors[i] = 'red'
     
-    angles = np.linspace(0, 2 * np.pi, num_features + 1, endpoint=True)
+    angles = np.linspace(2 * np.pi, 0, num_features + 1, endpoint=True)
     radii = np.linspace(1, num_classes, num_classes)
     
     # Draw circles and sectors
@@ -68,9 +68,18 @@ def plot_iris_on_circles(data, labels, feature_names, scaler, class_order, featu
     
     # Calculate label positions dynamically
     label_positions = calculate_label_positions(num_features, radii[-1] * 1.35)
+    original_feature_order = feature_order
+    # rotate the feature order by half of the number of features to start from the top
+    feature_order = feature_order[num_features // 2:] + feature_order[:num_features // 2]
+    # invert the feature order to start from the top
+    feature_order = feature_order[::-1]
+    # rotate back 1
+    feature_order = feature_order[-1:] + feature_order[:-1]
+    # make sure data is in the same order as feature order
+    data = data[:, feature_order]
     
     for i, feature_idx in enumerate(feature_order):
-        adjusted_index = -i + num_features // 2  # Adjust index to start from the top
+        adjusted_index = i
         sector_start = angles[adjusted_index]
         sector_end = angles[adjusted_index + 1]
         
@@ -91,11 +100,11 @@ def plot_iris_on_circles(data, labels, feature_names, scaler, class_order, featu
         class_label = labels[j]
         radius = radii[class_order.index(class_label)]
         for i, feature_idx in enumerate(feature_order):
-            adjusted_index = i  # This is the fix, ensuring clockwise order
-            sector_start = angles[adjusted_index]
-            sector_end = angles[adjusted_index + 1]
+            adjusted_index = i
+            sector_start = angles[adjusted_index + 1]
+            sector_end = angles[adjusted_index]
             data_angle = np.interp(data[j, feature_idx], [0, 1], [sector_start, sector_end])
-            x, y = radius * np.cos(data_angle), radius * np.sin(data_angle)
+            x, y = radius * -np.cos(data_angle), radius * np.sin(data_angle)
             ax.scatter(x, y, color=hsv_colors[class_label], alpha=0.33)
 
     ax.set_aspect('equal', adjustable='box')
@@ -132,7 +141,7 @@ def update_plot(*args):
     selected_feature_order = feature_order_combobox.get()
     class_order = [class_names.index(c.strip()) for c in selected_class_order.split(',')]
     feature_order = [feature_names.index(f.strip()) for f in selected_feature_order.split(',')]
-    plot_iris_on_circles(data, labels, feature_names, scaler, class_order, feature_order, ax)
+    plot_circular_coordinates(data, labels, feature_names, scaler, class_order, feature_order, ax)
     plot_parallel_coordinates(data, labels, feature_names, class_order, feature_order, ax2)
     update_legend()
     canvas.draw()
