@@ -18,3 +18,7 @@ X, Y, Z, W, class,
 
 Demo screenshot of Fisher Iris dataset:
 ![Demo screenshot of Iris dataset](screenshots/demo_iris.png)
+
+## License
+
+This project is freely available for both private and commercial use under the MIT license, please see `LICENSE` for full deatails.
