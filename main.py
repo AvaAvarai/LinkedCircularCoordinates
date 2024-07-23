@@ -70,7 +70,7 @@ def plot_iris_on_circles(data, labels, feature_names, scaler, class_order, featu
     label_positions = calculate_label_positions(num_features, radii[-1] * 1.35)
     
     for i, feature_idx in enumerate(feature_order):
-        adjusted_index = i  # This is the fix, ensuring clockwise order
+        adjusted_index = -i + num_features // 2  # Adjust index to start from the top
         sector_start = angles[adjusted_index]
         sector_end = angles[adjusted_index + 1]
         
