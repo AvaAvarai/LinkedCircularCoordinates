@@ -137,6 +137,8 @@ def update_plot(highlighted_index=None):
     plot_parallel_coordinates(data, labels, feature_names, class_order, feature_order, ax2, highlighted_index)
     update_legend()
     canvas.draw()
+    if highlighted_index is not None:
+        display_highlighted_values(highlighted_index)
 
 def load_file():
     file_path = filedialog.askopenfilename(initialdir='datasets', filetypes=[("CSV files", "*.csv"), ("Text files", "*.txt")])
@@ -174,7 +176,7 @@ def update_legend():
     for class_name, color in class_colors.items():
         count = class_counts.get(class_names.index(class_name), 0)
         legend_handles.append(plt.Line2D([0], [0], marker='o', color='w', markerfacecolor=color, markersize=10, label=f"{class_name} ({count})"))
-    fig.legend(handles=legend_handles, loc='upper center', bbox_to_anchor=(0.5, 0.95), ncol=len(class_names), title="Classes")
+    fig.legend(handles=legend_handles, loc='upper center', bbox_to_anchor=(0.5, 0.965), ncol=len(class_names), title="Classes")
 
 # Center the window on open
 def center_window(root):
@@ -192,7 +194,7 @@ data, labels, feature_names, scaler, class_names = None, None, None, None, None
 
 root = tk.Tk()
 root.title("Scatterplot Control Panel")
-root.geometry("1840x900")
+root.geometry("1840x1050")
 
 # Center the window
 center_window(root)
@@ -205,7 +207,7 @@ mainframe.grid(column=0, row=0, sticky=(tk.W, tk.E, tk.N, tk.S))
 plot_frame = ttk.Frame(mainframe, padding="10 10 10 10")
 plot_frame.grid(column=0, row=0, sticky=(tk.W, tk.E, tk.N, tk.S))
 
-fig, (ax, ax2) = plt.subplots(1, 2, figsize=(18, 8), gridspec_kw={'width_ratios': [1, 1.5], 'wspace': 0.3})
+fig, (ax, ax2) = plt.subplots(1, 2, figsize=(18, 7), gridspec_kw={'width_ratios': [1, 1.5], 'wspace': 0.75})
 fig.suptitle("SCC Scatterplot Multi-Axes vs Parallel Coordinates", y=0.98, x=0.5)
 canvas = FigureCanvasTkAgg(fig, master=plot_frame)
 canvas.get_tk_widget().grid(column=0, row=0, sticky=(tk.W, tk.E, tk.N, tk.S))
@@ -230,6 +232,10 @@ ttk.Button(control_frame, text="Update Plot", command=lambda: update_plot(None))
 # Load file button
 ttk.Button(control_frame, text="Load File", command=load_file).grid(column=0, row=2, sticky=tk.W)
 
+# Text widget for displaying highlighted values
+highlighted_values_text = tk.Text(control_frame, width=80, height=10)
+highlighted_values_text.grid(column=0, row=3, columnspan=2, pady=10)
+
 # Adjust grid configurations for resizing
 mainframe.columnconfigure(0, weight=1)
 mainframe.rowconfigure(0, weight=1)
@@ -247,6 +253,20 @@ def onpick(event):
         if sp == scatter:
             update_plot(ind)
             break
+
+def display_highlighted_values(index):
+    normalized_values = data[index]
+    original_values = scaler.inverse_transform([normalized_values])[0]
+    class_label = class_names[labels[index]]
+    
+    values_text = f"Highlighted Index: {index}\nClass: {class_label}\n\n"
+    values_text += "{:<20} {:<20} {:<20}\n".format("Feature", "Normalized Value", "Original Value")
+    values_text += "-" * 60 + "\n"
+    for i, feature_name in enumerate(feature_names):
+        values_text += "{:<20} {:<20.4f} {:<20.4f}\n".format(feature_name, normalized_values[i], original_values[i])
+    
+    highlighted_values_text.delete(1.0, tk.END)
+    highlighted_values_text.insert(tk.END, values_text)
 
 canvas.mpl_connect('pick_event', onpick)
 
