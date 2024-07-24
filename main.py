@@ -91,14 +91,15 @@ def plot_circular_coordinates(data, labels, feature_names, scaler, class_order, 
             sector_end = angles[adjusted_index]
             data_angle = np.interp(data[j, feature_idx], [0, 1], [sector_start, sector_end])
             x, y = radius * -np.cos(data_angle), radius * np.sin(data_angle)
-            scatter = ax.scatter(x, y, color=hsv_colors[class_label], alpha=0.3 if j != highlighted_index else 1, picker=True)
-            scatter_plots.append((scatter, j))
-    
             if highlighted_index is not None and j == highlighted_index:
+                # connect the highlighted scatter points with a polyline
+                x_max, y_max = radii[-1] * -np.cos(data_angle), radii[-1] * np.sin(data_angle)
+                ax.plot([0, x_max], [0, y_max], color='yellow', linestyle='-', linewidth=2, zorder=0)
                 ax.scatter(x, y, color=[1, 0, 0], alpha=1, s=135, edgecolors='black', linewidth=1)
                 ax.scatter(x, y, color=[1, 1, 0], alpha=0.75, s=125)
-                # connect the highlighted scatter points with a polyline
-                ax.plot([0, x], [0, y], color='yellow', linestyle='-', linewidth=2.5)
+                
+            scatter = ax.scatter(x, y, color=hsv_colors[class_label], alpha=0.3 if j != highlighted_index else 1, picker=True)
+            scatter_plots.append((scatter, j))
     
     ax.set_aspect('equal', adjustable='box')
     ax.set_xticks([])
