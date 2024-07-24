@@ -43,6 +43,9 @@ def calculate_label_positions(num_features, radius):
 
 def plot_circular_coordinates(data, labels, feature_names, scaler, class_order, feature_order, ax, highlighted_index=None):
     ax.clear()
+    feature_order = np.roll(feature_order, len(feature_order) // 2)
+    feature_order = feature_order[::-1]
+    feature_order = np.roll(feature_order, 1)
     
     num_classes = len(np.unique(labels))
     num_features = data.shape[1]
@@ -61,11 +64,11 @@ def plot_circular_coordinates(data, labels, feature_names, scaler, class_order, 
         circle = plt.Circle((0, 0), radius, color='black', fill=False, linestyle='dashed')
         ax.add_artist(circle)
         for angle in angles:
-            x, y = -radius * np.sin(angle), radius * np.cos(angle)
+            x, y = -radius * np.sin(angle), radius * -np.cos(angle)
             ax.plot([0, x], [0, y], color='black', linestyle='dashed', linewidth=0.5)
     
     label_positions = calculate_label_positions(num_features, radii[-1] * 1.4)
-    
+
     for i, feature_idx in enumerate(feature_order):
         adjusted_index = i
         sector_start = angles[adjusted_index]
