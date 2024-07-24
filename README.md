@@ -1,6 +1,6 @@
 # SimplifiedSCC
 
-Simplified Static Circular Cooridnates (SCC) to Parallel Coordinates (PC) comparison tool.
+Simplified Static Circular Cooridnates (SCC) to Parallel Coordinates (PC) comparison tool providing a coordinated view of SCC, PC, and tabular views.
 
 ## Data
 
