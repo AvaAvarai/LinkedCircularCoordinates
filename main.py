@@ -27,7 +27,7 @@ def load_and_normalize_file(file_path):
     scaler = MinMaxScaler()
     normalized_data = scaler.fit_transform(data)
     feature_names = list(df.columns.drop('class'))
-    class_names = labels.unique().astype(str).tolist()
+    class_names = sorted(labels.unique().astype(str).tolist())
     label_to_index = {class_name: index for index, class_name in enumerate(class_names)}
     labels = labels.map(label_to_index)
     return normalized_data, labels, feature_names, scaler, class_names, df
@@ -194,24 +194,22 @@ def update_legend():
     if fig.legends:
         fig.legends.clear()
     legend_handles = []
-    
-    # Sort class_names alphabetically and create a sorted color mapping
-    sorted_class_names = sorted(class_names)
+
     class_colors = {}
-    for i, class_name in enumerate(sorted_class_names):
+    for i, class_name in enumerate(class_names):
         if class_name.lower() == 'benign':
             class_colors[class_name] = 'green'
         elif class_name.lower() == 'malignant':
             class_colors[class_name] = 'red'
         else:
-            class_colors[class_name] = mcolors.hsv_to_rgb((i / len(sorted_class_names), 1, 1))
+            class_colors[class_name] = mcolors.hsv_to_rgb((i / len(class_names), 1, 1))
     
     class_counts = labels.value_counts().to_dict()
     for class_name, color in class_colors.items():
         count = class_counts.get(class_names.index(class_name), 0)
         legend_handles.append(plt.Line2D([0], [0], marker='o', color='w', markerfacecolor=color, markersize=10, label=f"{class_name} ({count})"))
     
-    fig.legend(handles=legend_handles, loc='upper center', bbox_to_anchor=(0.5, 0.965), ncol=len(sorted_class_names), title="Classes")
+    fig.legend(handles=legend_handles, loc='upper center', bbox_to_anchor=(0.5, 0.965), ncol=len(class_names), title="Classes")
 
 # Center the window on open
 def center_window(root):
