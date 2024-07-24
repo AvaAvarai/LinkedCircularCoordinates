@@ -61,13 +61,13 @@ def plot_circular_coordinates(data, labels, feature_names, scaler, class_order, 
         circle = plt.Circle((0, 0), radius, color='black', fill=False, linestyle='dashed')
         ax.add_artist(circle)
         for angle in angles:
-            x, y = radius * np.cos(angle), radius * np.sin(angle)
+            x, y = -radius * np.sin(angle), radius * np.cos(angle)
             ax.plot([0, x], [0, y], color='black', linestyle='dashed', linewidth=0.5)
     
     label_positions = calculate_label_positions(num_features, radii[-1] * 1.4)
     
     for i, feature_idx in enumerate(feature_order):
-        adjusted_index = -i + num_features // 2
+        adjusted_index = i
         sector_start = angles[adjusted_index]
         sector_end = angles[adjusted_index + 1]
         
