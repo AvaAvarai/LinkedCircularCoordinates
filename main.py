@@ -194,20 +194,24 @@ def update_legend():
     if fig.legends:
         fig.legends.clear()
     legend_handles = []
+    
+    # Sort class_names alphabetically and create a sorted color mapping
+    sorted_class_names = sorted(class_names)
     class_colors = {}
-    for i, class_name in enumerate(class_names):
+    for i, class_name in enumerate(sorted_class_names):
         if class_name.lower() == 'benign':
             class_colors[class_name] = 'green'
         elif class_name.lower() == 'malignant':
             class_colors[class_name] = 'red'
         else:
-            class_colors[class_name] = mcolors.hsv_to_rgb((i / len(class_names), 1, 1))
+            class_colors[class_name] = mcolors.hsv_to_rgb((i / len(sorted_class_names), 1, 1))
     
     class_counts = labels.value_counts().to_dict()
     for class_name, color in class_colors.items():
         count = class_counts.get(class_names.index(class_name), 0)
         legend_handles.append(plt.Line2D([0], [0], marker='o', color='w', markerfacecolor=color, markersize=10, label=f"{class_name} ({count})"))
-    fig.legend(handles=legend_handles, loc='upper center', bbox_to_anchor=(0.5, 0.965), ncol=len(class_names), title="Classes")
+    
+    fig.legend(handles=legend_handles, loc='upper center', bbox_to_anchor=(0.5, 0.965), ncol=len(sorted_class_names), title="Classes")
 
 # Center the window on open
 def center_window(root):
