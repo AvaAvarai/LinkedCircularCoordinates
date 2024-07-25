@@ -1,6 +1,6 @@
-# SimplifiedSCC
+# LinkedCircularCoordinates
 
-Simplified Static Circular Cooridnates (SCC) and Parallel Coordinates (PC) comparison tool providing a coordinated linked view of SCC, PC, and tabular views. A point highlighted in SCC or tabular views are shown highlighted in all three views. This is a demonstration of multidimensional general line coordinate construction of SCC and PC for building visual machine learning models from data.
+Linked Circular Coordinates is a linked-view demonstration of Static Circular Coordinates (SCC) with Parallel Coordinates (PC) and a tabular view. A point highlighted in SCC or tabular views are shown highlighted in all three views. This is a demonstration of multidimensional general line coordinate construction of SCC and PC for building visual machine learning models from data.
 
 ## Data
 
