@@ -104,8 +104,7 @@ def plot_circular_coordinates(data, labels, feature_names, scaler, class_order, 
 
 def plot_parallel_coordinates(data, labels, feature_names, class_order, feature_order, ax2, highlighted_index=None):
     ax2.clear()
-    num_classes = len(np.unique(labels))
-    
+
     df = pd.DataFrame(data, columns=feature_names)
     df['Class'] = labels
     
@@ -130,7 +129,6 @@ def plot_table(df, table):
     for col in table.get_children():
         table.delete(col)
     
-    table["columns"] = []
     table["show"] = "headings"
     
     table["columns"] = list(df.columns)
