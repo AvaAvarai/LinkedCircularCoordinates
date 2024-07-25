@@ -2,7 +2,7 @@
 
 Linked Circular Coordinates is a linked-view demonstration of Static Circular Coordinates (SCC) with Parallel Coordinates (PC) and a tabular view. A point highlighted in SCC or tabular views are shown highlighted in all three views. This is a demonstration of multidimensional general line coordinate construction of SCC and PC for building visual machine learning models from data.
 
-## Data
+## Data Format
 
 Data that can be loaded to visualize must be in the `.csv` or `.txt` file format. The data should be numerical tabular data. With only one column having the name of `class` which should contain the data labels. Example:
 
@@ -15,6 +15,10 @@ X, Y, Z, W, class,
 ```
 
 If the class name is `benign` or `malignant` case-insensitive then the class color assigned is green and red respectively. Otherwise, we linearly divide the HSV color model for a visually distinct default color palette.
+
+## Data Available
+
+Please see the `datasets\` folder for datasets which match the required data format.
 
 ## Demonstrative Screenshots
 
