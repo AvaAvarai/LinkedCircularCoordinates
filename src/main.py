@@ -97,10 +97,10 @@ class GLWidget(QOpenGLWidget):
             scatter_points = []
             for i, feature_idx in enumerate(feature_order):
                 data_angle = np.interp(data[j, feature_idx], [0, 1], [angles[i + 1], angles[i]])
-                x, y = radius * np.cos(data_angle), radius * np.sin(data_angle)
+                x, y = radius * -np.cos(data_angle), radius * np.sin(data_angle)
                 scatter_points.append((x, y))
                 if highlighted_index is not None and j == highlighted_index:
-                    x_max, y_max = radii[-1] * np.cos(data_angle), radii[-1] * np.sin(data_angle)
+                    x_max, y_max = radii[-1] * -np.cos(data_angle), radii[-1] * np.sin(data_angle)
                     glBegin(GL_LINES)
                     glVertex2f(0, 0)
                     glVertex2f(x_max, y_max)
