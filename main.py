@@ -49,13 +49,6 @@ def plot_circular_coordinates(data, labels, feature_names, scaler, class_order, 
     
     num_classes = len(np.unique(labels))
     num_features = data.shape[1]
-    hsv_colors = [mcolors.hsv_to_rgb((i / num_classes, 1, 1)) for i in range(num_classes)]
-    
-    for i, class_name in enumerate(class_names):
-        if class_name.lower() == 'benign':
-            hsv_colors[i] = 'green'
-        elif class_name.lower() == 'malignant':
-            hsv_colors[i] = 'red'
     
     angles = np.linspace(2 * np.pi, 0, num_features + 1, endpoint=True)
     radii = np.linspace(1, num_classes, num_classes)
@@ -101,7 +94,7 @@ def plot_circular_coordinates(data, labels, feature_names, scaler, class_order, 
                 ax.scatter(x, y, color=[1, 0, 0], alpha=1, s=135, edgecolors='black', linewidth=1)
                 ax.scatter(x, y, color=[1, 1, 0], alpha=0.75, s=125)
                 
-            scatter = ax.scatter(x, y, color=hsv_colors[class_label], alpha=0.3 if j != highlighted_index else 1, picker=True)
+            scatter = ax.scatter(x, y, color=class_colors[class_label], alpha=0.3 if j != highlighted_index else 1, picker=True)
             scatter_plots.append((scatter, j))
     
     ax.set_aspect('equal', adjustable='box')
@@ -112,13 +105,6 @@ def plot_circular_coordinates(data, labels, feature_names, scaler, class_order, 
 def plot_parallel_coordinates(data, labels, feature_names, class_order, feature_order, ax2, highlighted_index=None):
     ax2.clear()
     num_classes = len(np.unique(labels))
-    hsv_colors = [mcolors.hsv_to_rgb((i / num_classes, 1, 1)) for i in range(num_classes)]
-    
-    for i, class_name in enumerate(class_names):
-        if class_name.lower() == 'benign':
-            hsv_colors[i] = 'green'
-        elif class_name.lower() == 'malignant':
-            hsv_colors[i] = 'red'
     
     df = pd.DataFrame(data, columns=feature_names)
     df['Class'] = labels
@@ -126,7 +112,12 @@ def plot_parallel_coordinates(data, labels, feature_names, class_order, feature_
     reordered_columns = [feature_names[i] for i in feature_order] + ['Class']
     df = df[reordered_columns]
     
-    parallel_coordinates(df, 'Class', color=hsv_colors, ax=ax2, linewidth=1, alpha=0.33)
+    # Map labels to colors using class_colors
+    label_color_map = {label: class_colors[label] for label in df['Class'].unique()}
+    
+    for class_label, color in label_color_map.items():
+        subset = df[df['Class'] == class_label]
+        parallel_coordinates(subset, 'Class', color=[color], ax=ax2, linewidth=1, alpha=0.33)
     
     if highlighted_index is not None:
         df_highlighted = df.iloc[[highlighted_index]]
@@ -175,13 +166,25 @@ def update_plot(highlighted_index=None):
     update_legend()
     canvas.draw()
 
+def get_class_colors(labels):
+    unique_labels = np.unique(labels)
+    class_colors = {label: mcolors.hsv_to_rgb((i / len(unique_labels), 1, 1)) for i, label in enumerate(unique_labels)}
+    for label in unique_labels:
+        class_name = class_names[label]
+        if class_name.lower() == 'benign':
+            class_colors[label] = 'green'
+        elif class_name.lower() == 'malignant':
+            class_colors[label] = 'red'
+    return class_colors
+
 def load_file():
     file_path = filedialog.askopenfilename(initialdir='datasets', filetypes=[("CSV files", "*.csv"), ("Text files", "*.txt")])
     if file_path:
         result = load_and_normalize_file(file_path)
         if result[0] is not None:
-            global data, labels, feature_names, scaler, class_names, original_df
+            global data, labels, feature_names, scaler, class_names, original_df, class_colors
             data, labels, feature_names, scaler, class_names, original_df = result
+            class_colors = get_class_colors(labels)  # Initialize class_colors here
             update_controls()
             update_plot()
 
@@ -198,19 +201,11 @@ def update_legend():
     if fig.legends:
         fig.legends.clear()
     legend_handles = []
-
-    class_colors = {}
-    for i, class_name in enumerate(class_names):
-        if class_name.lower() == 'benign':
-            class_colors[class_name] = 'green'
-        elif class_name.lower() == 'malignant':
-            class_colors[class_name] = 'red'
-        else:
-            class_colors[class_name] = mcolors.hsv_to_rgb((i / len(class_names), 1, 1))
     
     class_counts = labels.value_counts().to_dict()
-    for class_name, color in class_colors.items():
-        count = class_counts.get(class_names.index(class_name), 0)
+    for label, color in class_colors.items():
+        class_name = class_names[label]
+        count = class_counts.get(label, 0)
         legend_handles.append(plt.Line2D([0], [0], marker='o', color='w', markerfacecolor=color, markersize=10, label=f"{class_name} ({count})"))
     
     fig.legend(handles=legend_handles, loc='upper center', bbox_to_anchor=(0.5, 0.965), ncol=len(class_names), title="Classes")
