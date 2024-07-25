@@ -1,6 +1,6 @@
 # SimplifiedSCC
 
-Simplified Static Circular Cooridnates (SCC) to Parallel Coordinates (PC) comparison tool providing a coordinated view of SCC, PC, and tabular views.
+Simplified Static Circular Cooridnates (SCC) and Parallel Coordinates (PC) comparison tool providing a coordinated linked view of SCC, PC, and tabular views. A point highlighted in SCC or tabular views are shown highlighted in all three views. This is a demonstration of multidimensional general line coordinate construction of SCC and PC for building visual machine learning models from data.
 
 ## Data
 
